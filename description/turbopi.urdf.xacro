@@ -1,0 +1,269 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="turbopi">
+
+  <!-- ============================================================
+       HiWonder TurboPi AI Vision Robot — Raspberry Pi 5 version
+       Custom URDF model matching the real hardware:
+       - 4-wheel mecanum drive (4x DC motors)
+       - Pan-tilt camera head (2x servos)
+       - Line-follower IR sensor array (front)
+       - Ultrasonic sensor (front)
+       - RGB LED strip + buzzer
+       ============================================================ -->
+
+  <!-- Materials -->
+  <material name="black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  <material name="aluminum">
+    <color rgba="0.75 0.75 0.78 1.0"/>
+  </material>
+  <material name="camera_dark">
+    <color rgba="0.15 0.15 0.18 1.0"/>
+  </material>
+  <material name="wheel">
+    <color rgba="0.2 0.2 0.25 1.0"/>
+  </material>
+
+  <!-- Base chassis (aluminum frame) -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.18 0.14 0.05"/>
+      </geometry>
+      <material name="aluminum"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.18 0.14 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.2"/>
+      <inertia ixx="0.004" ixy="0.0" ixz="0.0" iyy="0.006" iyz="0.0" izz="0.004"/>
+    </inertial>
+  </link>
+
+  <!-- Raspberry Pi 5 board on top -->
+  <link name="rpi5">
+    <visual>
+      <geometry>
+        <box size="0.085 0.056 0.017"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0.035"/>
+      <material name="camera_dark"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.085 0.056 0.017"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0.035"/>
+    </collision>
+  </link>
+  <joint name="rpi5_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rpi5"/>
+    <origin xyz="0.0 0.0 0.03"/>
+  </joint>
+
+  <!-- Pan-tilt camera head -->
+  <link name="camera_pan">
+    <visual>
+      <geometry>
+        <box size="0.03 0.03 0.04"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0.02"/>
+      <material name="aluminum"/>
+    </visual>
+  </link>
+  <joint name="camera_pan_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="camera_pan"/>
+    <origin xyz="0.09 0.0 0.06"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.57" upper="1.57" effort="0.5" velocity="3.0"/>
+  </joint>
+
+  <link name="camera_tilt">
+    <visual>
+      <geometry>
+        <box size="0.025 0.025 0.03"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0.02"/>
+      <material name="camera_dark"/>
+    </visual>
+  </link>
+  <joint name="camera_tilt_joint" type="revolute">
+    <parent link="camera_pan"/>
+    <child link="camera_tilt"/>
+    <origin xyz="0.015 0.0 0.04"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.2" upper="1.2" effort="0.5" velocity="3.0"/>
+  </joint>
+
+  <!-- Camera (120-degree wide angle) -->
+  <link name="camera_link">
+    <visual>
+      <geometry>
+        <box size="0.025 0.02 0.02"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0.0"/>
+      <material name="camera_dark"/>
+    </visual>
+  </link>
+  <joint name="camera_joint" type="fixed">
+    <parent link="camera_tilt"/>
+    <child link="camera_link"/>
+    <origin xyz="0.02 0.0 0.0"/>
+  </joint>
+
+  <!-- Camera optical frame (ROS standard) -->
+  <link name="camera_optical_frame"/>
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_optical_frame"/>
+    <origin xyz="0.0 0.0 0.0" rpy="-1.5708 0.0 -1.5708"/>
+  </joint>
+
+  <!-- 4 mecanum wheels -->
+  <!-- Front-left -->
+  <link name="wheel_fl">
+    <visual>
+      <geometry>
+        <cylinder radius="0.0325" length="0.02"/>
+      </geometry>
+      <origin rpy="0 1.5708 0"/>
+      <material name="wheel"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.0325" length="0.02"/>
+      </geometry>
+      <origin rpy="0 1.5708 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.00002" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.00003"/>
+    </inertial>
+  </link>
+  <joint name="wheel_fl_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_fl"/>
+    <origin xyz="0.07 0.08 0.0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- Front-right -->
+  <link name="wheel_fr">
+    <visual>
+      <geometry>
+        <cylinder radius="0.0325" length="0.02"/>
+      </geometry>
+      <origin rpy="0 1.5708 0"/>
+      <material name="wheel"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.0325" length="0.02"/>
+      </geometry>
+      <origin rpy="0 1.5708 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.00002" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.00003"/>
+    </inertial>
+  </link>
+  <joint name="wheel_fr_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_fr"/>
+    <origin xyz="0.07 -0.08 0.0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- Rear-left -->
+  <link name="wheel_rl">
+    <visual>
+      <geometry>
+        <cylinder radius="0.0325" length="0.02"/>
+      </geometry>
+      <origin rpy="0 1.5708 0"/>
+      <material name="wheel"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.0325" length="0.02"/>
+      </geometry>
+      <origin rpy="0 1.5708 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.00002" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.00003"/>
+    </inertial>
+  </link>
+  <joint name="wheel_rl_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_rl"/>
+    <origin xyz="-0.07 0.08 0.0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- Rear-right -->
+  <link name="wheel_rr">
+    <visual>
+      <geometry>
+        <cylinder radius="0.0325" length="0.02"/>
+      </geometry>
+      <origin rpy="0 1.5708 0"/>
+      <material name="wheel"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.0325" length="0.02"/>
+      </geometry>
+      <origin rpy="0 1.5708 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.00002" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.00003"/>
+    </inertial>
+  </link>
+  <joint name="wheel_rr_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_rr"/>
+    <origin xyz="-0.07 -0.08 0.0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- Line-follower IR sensor array (front) -->
+  <link name="ir_sensors">
+    <visual>
+      <geometry>
+        <box size="0.05 0.02 0.01"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+  </link>
+  <joint name="ir_sensors_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="ir_sensors"/>
+    <origin xyz="0.09 0.0 -0.02"/>
+  </joint>
+
+  <!-- Ultrasonic sensor (front) -->
+  <link name="ultrasonic">
+    <visual>
+      <geometry>
+        <box size="0.02 0.04 0.02"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+  </link>
+  <joint name="ultrasonic_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="ultrasonic"/>
+    <origin xyz="0.1 0.0 0.02"/>
+  </joint>
+
+</robot>

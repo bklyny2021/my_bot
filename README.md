@@ -1,46 +1,52 @@
-# my_bot — ROS 2 Robot Description Package
+# my_bot — HiWonder TurboPi AI Vision Robot (Raspberry Pi 5)
 
-A starter **ROS 2** (Humble+) robot package: URDF robot description, launch files, and an empty simulation world. Fork it and rename to start your own robot project.
+**Custom code for Boo's TurboPi** — the 4-wheel mecanum AI vision rover with pan-tilt camera, line-follower IR array, ultrasonic sensor, RGB LEDs, and buzzer, running on a Raspberry Pi 5.
 
 ## What's inside
 
 | Path | Description |
 |------|-------------|
-| `description/robot.urdf.xacro` | Robot model (URDF via xacro) — edit to define your robot's links, joints, and sensors |
-| `launch/rsp.launch.py` | Launch file — starts the robot state publisher (publishes `/robot_description` + TF) |
-| `config/empty.yaml` | Empty config placeholder (add your controller/param YAMLs here) |
-| `worlds/empty.world` | Empty Gazebo world to start from |
-| `CMakeLists.txt` / `package.xml` | Standard `ament_cmake` build files |
+| `description/turbopi.urdf.xacro` | **Custom URDF** matching the real hardware: chassis, Pi 5, pan-tilt camera, 4 mecanum wheels, IR array, ultrasonic |
+| `description/robot.urdf.xacro` | Stock ROS 2 starter (kept for reference) |
+| `scripts/turbopi_driver.py` | **Custom driver** — serial protocol (FF 55 + device + cmd + data + checksum) for motors, servos, sensors, RGB, buzzer |
+| `scripts/turbopi_control.py` | **Custom console** — WASD drive, pan/tilt camera, sensor reads |
+| `docs/FLASHING.md` | **Custom guide** — which image to flash on the Pi 5 + first-boot setup |
+| `images/` | Official HiWonder TurboPi product photos |
+| `launch/rsp.launch.py` | ROS 2 launch (robot_state_publisher) |
+| `worlds/empty.world` | Empty Gazebo world |
 
-## Build & run
+## Quick start (on the robot)
 
 ```bash
-# From your ROS 2 workspace (e.g. ~/ros2_ws/src)
-git clone <this-repo> my_bot
-cd ~/ros2_ws && colcon build --packages-select my_bot
-source install/setup.bash
-
-# Launch the robot description
-ros2 launch my_bot rsp.launch.py
-
-# Verify TF is publishing
-ros2 run tf2_tools view_frames
+cd ~/my_bot
+pip3 install pyserial
+python3 scripts/turbopi_control.py
 ```
 
-## Renaming the package
+Controls: `w/a/s/d` drive · `q/e` spin · `i/k` pan · `j/l` tilt · `u` ultrasonic · `r` IR · `space` stop · `x` exit
 
-1. Rename the folder: `mv my_bot <your_robot_name>`
-2. Update `package.xml` (name, description, maintainer, license)
-3. Update `CMakeLists.txt` (project name)
-4. Update the URDF and launch file references
+## Flashing the Pi 5
 
-## Requirements
+See **`docs/FLASHING.md`** — use the **official HiWonder TurboPi system image for Raspberry Pi 5** (stock Raspberry Pi OS won't drive the robot).
 
-- ROS 2 (Humble or newer)
-- `colcon` build tools
-- `xacro` (usually included with ROS 2 desktop install)
-- Gazebo (optional, for the empty world)
+## ROS 2 (optional)
+
+```bash
+cd ~/ros2_ws/src && git clone https://github.com/bklyny2021/my_bot.git
+cd ~/ros2_ws && colcon build --packages-select my_bot
+source install/setup.bash
+ros2 launch my_bot rsp.launch.py
+```
+
+## Hardware
+
+- **Brain:** Raspberry Pi 5
+- **Drive:** 4× DC motors, mecanum wheels (omnidirectional)
+- **Vision:** 120° wide-angle camera on 2-servo pan-tilt head
+- **Sensors:** 5-channel IR line follower, ultrasonic
+- **Effects:** RGB LEDs, buzzer
+- **Interface:** UART serial (115200 baud, HiWonder protocol)
 
 ## License
 
-See `LICENSE.md`.
+Apache-2.0 — see `LICENSE.md`.
