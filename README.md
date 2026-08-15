@@ -2,6 +2,10 @@
 
 **Custom code for Boo's TurboPi** — the 4-wheel mecanum AI vision rover with pan-tilt camera, line-follower IR array, ultrasonic sensor, RGB LEDs, and buzzer, running on a Raspberry Pi 5.
 
+![HiWonder TurboPi](images/turbopi.jpg)
+
+![HiWonder TurboPi — side view](images/turbopi_2.jpg)
+
 ## What's inside
 
 | Path | Description |
